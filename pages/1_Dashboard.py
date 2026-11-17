@@ -3,54 +3,16 @@ import base64
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
+from components.login import require_login
+from components.sidebar import render_sidebar
+
+require_login()
+render_sidebar()
 
 from components.notifications import render_notifications
 
 # =====================================================
-# 1. PAGE CONFIG
-# =====================================================
-
-st.set_page_config(
-    page_title="ANOMATRIX | Dashboard",
-    page_icon="⚙️",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
-
-# =====================================================
-# 2. SIDEBAR LOGO (top of sidebar, above navigation)
-# =====================================================
-
-LOGO_SVG = """
-<svg xmlns="http://www.w3.org/2000/svg" width="310" height="84" viewBox="0 0 310 84">
-  <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#3FA0E0"/>
-      <stop offset="1" stop-color="#0F2F4E"/>
-    </linearGradient>
-  </defs>
-  <rect x="2" y="6" width="72" height="72" rx="19" fill="url(#g)"/>
-  <circle cx="38" cy="42" r="23" fill="none" stroke="#FFFFFF" stroke-width="8.5"
-          stroke-dasharray="7.6 7.6"/>
-  <circle cx="38" cy="42" r="16.5" fill="none" stroke="#FFFFFF" stroke-width="4.2"/>
-  <circle cx="38" cy="42" r="6.5" fill="#FFFFFF"/>
-  <text x="88" y="45" textLength="216" lengthAdjust="spacingAndGlyphs"
-        font-family="Inter, Segoe UI, Arial, sans-serif" font-size="33" font-weight="900"
-        fill="#0F2A45" stroke="#0F2A45" stroke-width="0.9">ANOMATRIX</text>
-  <text x="89" y="65" textLength="214" lengthAdjust="spacing"
-        font-family="Consolas, Menlo, monospace" font-size="11" font-weight="700"
-        fill="#3F5A72">INDUSTRIAL INTELLIGENCE</text>
-</svg>
-"""
-
-logo_uri = "data:image/svg+xml;base64," + base64.b64encode(
-    LOGO_SVG.encode("utf-8")
-).decode("utf-8")
-
-st.logo(logo_uri, size="large")
-
-# =====================================================
-# 3. CSS
+# 1. CSS
 # =====================================================
 
 st.markdown(
@@ -67,10 +29,18 @@ html, body, .stApp, [class*="css"] { font-family: 'Inter', sans-serif; }
         #EAF3FB;
     color: #263746;
 }
-[data-testid="stHeader"] { background: transparent; }
+
+/* Top bar aur main container ka extra space hatane ke liye */
+[data-testid="stHeader"] { display: none !important; }
 footer { visibility: hidden; }
 
-.block-container { max-width: 1500px; padding-top: 1.4rem; padding-bottom: 2rem; }
+[data-testid="stMainBlockContainer"],
+.block-container {
+    max-width: 1500px;
+    padding-top: 0rem !important;
+    margin-top: -1.8rem !important;
+    padding-bottom: 1.5rem;
+}
 
 /* ---------- SIDEBAR ---------- */
 [data-testid="stSidebar"] {
@@ -118,34 +88,35 @@ footer { visibility: hidden; }
 .eyebrow {
     font-family: 'JetBrains Mono', monospace; font-size: 11px;
     letter-spacing: 3px; color: #6F8496; text-transform: uppercase;
+    margin-top: 0;
 }
-.page-title { font-size: 36px; font-weight: 800; color: #14273A; margin: 2px 0 4px; line-height: 1.1; }
-.page-sub { color: #5B6F7E; font-size: 14px; max-width: 760px; }
+.page-title { font-size: 34px; font-weight: 800; color: #14273A; margin: 1px 0 3px; line-height: 1.1; }
+.page-sub { color: #5B6F7E; font-size: 13.5px; max-width: 780px; }
 
-/* Action Planner button (top right) */
-[data-testid="stDownloadButton"] button {
+/* Action Planner button (top right - main area only) */
+[data-testid="stMain"] .stButton > button {
     background: rgba(255,255,255,0.92); border: 1px solid #F1D3D8;
-    border-radius: 16px; height: 3.8rem;
+    border-radius: 16px; height: 3.5rem;
     box-shadow: 0 8px 22px rgba(190,70,90,0.12);
     transition: all .25s ease;
 }
-[data-testid="stDownloadButton"] button p {
+[data-testid="stMain"] .stButton > button p {
     font-family: 'JetBrains Mono', monospace; letter-spacing: 2.5px;
     font-weight: 700; font-size: 13px; color: #B03A4E;
 }
-[data-testid="stDownloadButton"] button:hover {
+[data-testid="stMain"] .stButton > button:hover {
     transform: translateY(-3px); border-color: #E5536A;
     box-shadow: 0 14px 30px rgba(190,70,90,0.22); background: #FFFFFF;
 }
 
-.divider { border: none; border-top: 1px solid #C9D6E0; margin: 14px 0 16px; }
+.divider { border: none; border-top: 1px solid #C9D6E0; margin: 8px 0 12px; }
 
 /* ---------- COMPACT ALERT BANNER ---------- */
 .alert-banner {
     background: linear-gradient(120deg, #FDE0E4 0%, #FCE9EC 60%, #FDEFF1 100%);
-    border: 1px solid #F6D0D6; border-radius: 18px; padding: 15px 22px;
+    border: 1px solid #F6D0D6; border-radius: 18px; padding: 14px 20px;
     display: flex; justify-content: space-between; align-items: center; gap: 18px;
-    margin-top: 6px;
+    margin-top: 10px;
     box-shadow: 0 10px 24px rgba(190,70,90,0.09);
     transition: all .3s ease;
 }
@@ -155,34 +126,34 @@ footer { visibility: hidden; }
 .alert-tag .dot { display:inline-block; width:7px; height:7px; border-radius:50%;
     background:#E5536A; margin-right:7px; animation: pulse 1.6s infinite; }
 @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(229,83,106,.55);} 70%{box-shadow:0 0 0 8px rgba(229,83,106,0);} 100%{box-shadow:0 0 0 0 rgba(229,83,106,0);} }
-.alert-title { font-size: 19px; font-weight: 800; color: #1F2D3A; margin-top: 4px; line-height: 1.25; }
+.alert-title { font-size: 18.5px; font-weight: 800; color: #1F2D3A; margin-top: 3px; line-height: 1.25; }
 .alert-desc { color: #6B5A60; font-size: 13px; margin-top: 2px; }
-.chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 9px; }
+.chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
 .chip {
     display: inline-flex; align-items: center; gap: 5px;
     background: #FFFFFF; border-radius: 999px; padding: 5px 11px;
     font-size: 11.5px; font-weight: 500; color: #45535D;
 }
 .sev-box {
-    background: #FFFFFF; border-radius: 14px; padding: 11px 18px; min-width: 118px;
+    background: #FFFFFF; border-radius: 14px; padding: 10px 18px; min-width: 115px;
     text-align: left; flex-shrink: 0;
     box-shadow: 0 4px 14px rgba(0,0,0,0.05);
 }
 .sev-box .l { font-family: 'JetBrains Mono', monospace; letter-spacing: 2px;
     font-size: 9.5px; color: #6F7C86; }
-.sev-box .v { font-size: 19px; font-weight: 700; color: #1F2D3A; margin-top: 3px; }
-.sev-box .v span { color: #E5536A; margin-right: 6px; font-size: 15px; }
+.sev-box .v { font-size: 18px; font-weight: 700; color: #1F2D3A; margin-top: 2px; }
+.sev-box .v span { color: #E5536A; margin-right: 6px; font-size: 14px; }
 
 /* ---------- KPI CARDS ---------- */
 .section-label { font-family: 'JetBrains Mono', monospace; letter-spacing: 3px;
-    font-size: 11px; color: #6F8496; margin-top: 24px; }
-.section-title { font-size: 23px; font-weight: 800; color: #14273A; margin: 3px 0 14px; }
+    font-size: 10.5px; color: #6F8496; margin-top: 18px; }
+.section-title { font-size: 21px; font-weight: 800; color: #14273A; margin: 2px 0 10px; }
 
 .kpi-card {
     position: relative; overflow: hidden;
     background: linear-gradient(145deg, #FFFFFF 0%, #F7FBFF 100%);
     border: 1px solid #DCE7F0; border-radius: 18px;
-    padding: 18px 20px 20px; min-height: 146px;
+    padding: 16px 18px 18px; min-height: 136px;
     box-shadow: 0 6px 18px rgba(35,75,110,0.06);
     transition: all .28s ease;
 }
@@ -191,18 +162,18 @@ footer { visibility: hidden; }
     width: 140px; height: 140px; border-radius: 50%;
     background: radial-gradient(circle, var(--c) 0%, transparent 70%); opacity: .14;
 }
-.kpi-card:hover { transform: translateY(-5px); box-shadow: 0 14px 28px rgba(35,75,110,0.15); border-color: var(--c); }
-.kpi-label { font-family: 'JetBrains Mono', monospace; font-size: 11px;
-    letter-spacing: 2.2px; color: #6F7C86; font-weight: 500; }
+.kpi-card:hover { transform: translateY(-4px); box-shadow: 0 14px 28px rgba(35,75,110,0.15); border-color: var(--c); }
+.kpi-label { font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+    letter-spacing: 2px; color: #6F7C86; font-weight: 500; }
 .kpi-link { display: block; text-decoration: none !important; color: inherit !important; }
-.kpi-more { position: absolute; right: 18px; bottom: 14px; font-size: 12px; font-weight: 600;
+.kpi-more { position: absolute; right: 16px; bottom: 12px; font-size: 11.5px; font-weight: 600;
     color: var(--c); opacity: 0; transform: translateX(-6px); transition: all .25s ease; }
 .kpi-card:hover .kpi-more { opacity: 1; transform: translateX(0); }
 html, [data-testid="stMain"], section.main { scroll-behavior: smooth; }
-#machine-details { scroll-margin-top: 70px; }
-.kpi-value { font-size: 36px; font-weight: 800; color: #14273A; margin-top: 14px; line-height: 1; }
-.kpi-desc { font-size: 12.5px; color: #7A8791; margin-top: 7px; }
-.kpi-line { position: absolute; left: 20px; bottom: 0; height: 4px; width: 44px;
+#machine-details { scroll-margin-top: 30px; }
+.kpi-value { font-size: 34px; font-weight: 800; color: #14273A; margin-top: 12px; line-height: 1; }
+.kpi-desc { font-size: 12px; color: #7A8791; margin-top: 6px; }
+.kpi-line { position: absolute; left: 18px; bottom: 0; height: 4px; width: 42px;
     border-radius: 4px 4px 0 0; background: var(--c); }
 
 /* ---------- PANELS ---------- */
@@ -213,14 +184,14 @@ html, [data-testid="stMain"], section.main { scroll-behavior: smooth; }
 [data-testid="stVerticalBlockBorderWrapper"]:hover {
     box-shadow: 0 12px 26px rgba(35,75,110,0.10); border-color: #9CC8E2;
 }
-.panel-title { font-size: 18px; font-weight: 800; color: #14273A; margin-bottom: 14px; }
+.panel-title { font-size: 17px; font-weight: 800; color: #14273A; margin-bottom: 12px; }
 
-.risk-row { margin-bottom: 18px; }
+.risk-row { margin-bottom: 15px; }
 .risk-head { display:flex; justify-content:space-between; align-items:baseline; }
-.risk-name { font-weight: 700; color: #1F3547; font-size: 15px; }
+.risk-name { font-weight: 700; color: #1F3547; font-size: 14.5px; }
 .risk-meta { font-size: 12px; color: #7A8791; margin-top: 2px; }
-.risk-score { font-weight: 800; font-size: 18px; }
-.bar { height: 8px; border-radius: 8px; background: #E6EEF5; margin-top: 8px; overflow: hidden; }
+.risk-score { font-weight: 800; font-size: 17px; }
+.bar { height: 8px; border-radius: 8px; background: #E6EEF5; margin-top: 7px; overflow: hidden; }
 .bar > div { height: 100%; border-radius: 8px; }
 .tag { font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:1.5px;
     padding: 3px 9px; border-radius: 999px; font-weight: 700; margin-left: 8px; }
@@ -232,38 +203,16 @@ hr { border-color: #D5E0E9; }
 )
 
 # =====================================================
-# 4. SIDEBAR BOTTOM : PROFILE + LOGOUT
-# =====================================================
-
-with st.sidebar:
-    st.html(
-        """
-        <div class="user-card">
-            <div class="user-avatar">PA</div>
-            <div>
-                <div class="user-name">Plant Admin</div>
-                <div class="user-role">Factory Operations</div>
-            </div>
-        </div>
-        """
-    )
-
-    if st.button("⇦  Log out", use_container_width=True, key="logout_btn"):
-        st.session_state["logged_in"] = False
-        st.session_state.pop("selected_action", None)
-        st.rerun()
-
-# =====================================================
-# 5. NOTIFICATIONS
+# 2. NOTIFICATIONS
 # =====================================================
 
 render_notifications()
 
 # =====================================================
-# 5b. HEADER
+# 3. HEADER & ACTION PLANNER REDIRECT
 # =====================================================
 
-h_left, h_right = st.columns([4, 1])
+h_left, h_right = st.columns([4, 1], vertical_alignment="center")
 
 with h_left:
     st.html(
@@ -275,95 +224,20 @@ with h_left:
         """
     )
 
-PLAN_ACTIONS = [
-    ("M-07 Air Compressor", "HIGH", "Day 1", "Technician A",
-     "Inspect bearings and check shaft alignment. Vibration is 2.8x normal; limit expected in ~2.5 days."),
-    ("M-04 CNC Mill", "MEDIUM", "Day 2", "Technician B",
-     "Vibration check. Reading is drifting upward; limit expected in ~6 days."),
-    ("M-10 Conveyor", "MEDIUM", "Day 3", "Technician C",
-     "Motor inspection. Temperature spikes observed; limit expected in ~9 days."),
-    ("M-08 Cooling System", "LOW", "Day 5", "Technician A",
-     "Filter replacement. Temperature fluctuation; limit expected in ~12 days."),
-]
-
-
-def build_action_plan():
-    """Build the action plan from the current dashboard data. PDF if reportlab exists, else text."""
-    stamp = pd.Timestamp.now().strftime("%d %b %Y, %I:%M %p")
-    summary = (
-        "12 machines registered | 9 healthy | 3 anomalies flagged | "
-        "1 high priority | average health 86%"
-    )
-    try:
-        from io import BytesIO
-
-        from reportlab.lib import colors
-        from reportlab.lib.pagesizes import A4
-        from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
-        from reportlab.lib.units import mm
-        from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
-
-        buf = BytesIO()
-        doc = SimpleDocTemplate(buf, pagesize=A4, leftMargin=18 * mm, rightMargin=18 * mm,
-                                topMargin=18 * mm, bottomMargin=18 * mm,
-                                title="ANOMATRIX Action Plan")
-        ss = getSampleStyleSheet()
-        h1 = ParagraphStyle("h1", parent=ss["Title"], textColor=colors.HexColor("#183B5B"), alignment=0)
-        h2 = ParagraphStyle("h2", parent=ss["Heading2"], textColor=colors.HexColor("#183B5B"))
-        cell = ParagraphStyle("cell", parent=ss["BodyText"], fontSize=9, leading=12)
-        head = ParagraphStyle("head", parent=cell, textColor=colors.white, fontName="Helvetica-Bold")
-
-        rows = [[Paragraph(t, head) for t in ["#", "Machine", "Priority", "When", "Owner", "Action"]]]
-        for i, (m, p, d, o, a) in enumerate(PLAN_ACTIONS, 1):
-            rows.append([Paragraph(str(i), cell), Paragraph(f"<b>{m}</b>", cell),
-                         Paragraph(p, cell), Paragraph(d, cell), Paragraph(o, cell), Paragraph(a, cell)])
-
-        tbl = Table(rows, colWidths=[8 * mm, 32 * mm, 20 * mm, 15 * mm, 24 * mm, 75 * mm], repeatRows=1)
-        tbl.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#183B5B")),
-            ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#F1F6FC")]),
-            ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#C9D9E7")),
-            ("VALIGN", (0, 0), (-1, -1), "TOP"),
-            ("BACKGROUND", (2, 1), (2, 1), colors.HexColor("#FDE3E7")),
-        ]))
-
-        doc.build([
-            Paragraph("ANOMATRIX - Maintenance Action Plan", h1),
-            Paragraph(f"Generated: {stamp}", ss["Normal"]),
-            Spacer(1, 6 * mm),
-            Paragraph("Factory summary", h2),
-            Paragraph(summary, ss["BodyText"]),
-            Spacer(1, 4 * mm),
-            Paragraph("Priority actions", h2),
-            tbl,
-            Spacer(1, 6 * mm),
-            Paragraph("Illustrative mock data - not live sensor data.", ss["Italic"]),
-        ])
-        return buf.getvalue(), "anomatrix_action_plan.pdf", "application/pdf"
-    except ImportError:
-        lines = ["ANOMATRIX - Maintenance Action Plan", f"Generated: {stamp}", "", summary, ""]
-        for i, (m, p, d, o, a) in enumerate(PLAN_ACTIONS, 1):
-            lines += [f"{i}. {m} [{p}] - {d} ({o})", f"   {a}", ""]
-        lines.append("Illustrative mock data - not live sensor data.")
-        return "\n".join(lines).encode("utf-8"), "anomatrix_action_plan.txt", "text/plain"
-
-
 with h_right:
-    plan_bytes, plan_name, plan_mime = build_action_plan()
-    st.download_button(
+    if st.button(
         "ACTION PLANNER  ›",
-        data=plan_bytes,
-        file_name=plan_name,
-        mime=plan_mime,
-        key="action_planner_btn",
+        key="action_planner_nav_btn",
         use_container_width=True,
-        help="Click to generate and download the action plan",
-    )
+        help="Open Action Planner in Maintenance & Reports",
+    ):
+        st.session_state["focus_action_planner"] = True
+        st.switch_page("pages/3_Maintenance_Reports.py")
 
 st.html('<hr class="divider">')
 
 # =====================================================
-# 6. KPI CARDS (8 Cards First on Screen)
+# 4. KPI CARDS (8 Cards First on Screen)
 # =====================================================
 
 st.html(
@@ -400,10 +274,10 @@ for start in range(0, len(kpis), 4):
                 """
             )
     if start == 0:
-        st.write("")
+        st.html('<div style="height: 8px;"></div>')
 
 # =====================================================
-# 7. COMPACT ACTIVE ALERT BANNER (Below the 8 Cards)
+# 5. COMPACT ACTIVE ALERT BANNER (Below the 8 Cards)
 # =====================================================
 
 ICON = {
@@ -445,7 +319,7 @@ st.html(
 )
 
 # =====================================================
-# 8. QUICK SNAPSHOT : TOP RISKS + HEALTH SPLIT
+# 6. QUICK SNAPSHOT : TOP RISKS + HEALTH SPLIT
 # =====================================================
 
 st.html(
@@ -509,7 +383,7 @@ with col_b:
             )
         )
         fig.update_layout(
-            height=250,
+            height=240,
             margin=dict(t=5, b=5, l=5, r=5),
             paper_bgcolor="rgba(0,0,0,0)",
             showlegend=False,
@@ -520,8 +394,9 @@ with col_b:
             ],
         )
         st.plotly_chart(fig, use_container_width=True)
+
 # =====================================================
-# 9. MACHINE DETAILS (cards above link here)
+# 7. MACHINE DETAILS (Fit-in Table)
 # =====================================================
 
 st.html(
@@ -601,5 +476,3 @@ with st.container(border=True):
             "Status Note": st.column_config.TextColumn("Status Note", width="medium"),
         },
     )
-
-st.caption("Prototype v1.0 · Illustrative mock data · Not live sensor data")
