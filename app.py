@@ -1,84 +1,22 @@
-
 import streamlit as st
 
 st.set_page_config(
     page_title="ANOMATRIX | Industrial Intelligence",
     page_icon="⚙️",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
 )
 
-# ==========================================
-# ANOMATRIX - PAGE NAVIGATION
-# ==========================================
+from components.login import require_login
 
-dashboard = st.Page(
-    "pages/1_Dashboard.py",
-    title="Dashboard",
-    icon=":material/dashboard:",
-    default=True
-)
+# 1) Not signed in -> full-screen login page (nothing else runs)
+require_login()
 
-machine_explorer = st.Page(
-    "pages/2_Machine_Explorer.py",
-    title="Machine Explorer",
-    icon=":material/precision_manufacturing:"
-)
-
-predictive_lab = st.Page(
-    "pages/3_Predictive_Lab.py",
-    title="Predictive Lab",
-    icon=":material/psychology:"
-)
-
-maintenance_hub = st.Page(
-    "pages/4_Reliability_Maintenance_Hub.py",
-    title="Reliability & Maintenance Hub",
-    icon=":material/handyman:"
-)
-
-plant_intelligence = st.Page(
-    "pages/5_Plant_Intelligence.py",
-    title="Plant Intelligence",
-    icon=":material/monitoring:"
-)
-
-about_help = st.Page(
-    "pages/6_About_Help.py",
-    title="About & Help",
-    icon=":material/help_outline:"
-)
-
-# ==========================================
-# SIDEBAR BRANDING
-# ==========================================
-
-st.sidebar.title("⚙️ ANOMATRIX")
-
-st.sidebar.caption(
-    "INDUSTRIAL INTELLIGENCE"
-)
-
-st.sidebar.markdown("---")
-
-# ==========================================
-# NAVIGATION MENU
-# ==========================================
-
-pg = st.navigation(
-    [
-        dashboard,
-        machine_explorer,
-        predictive_lab,
-        maintenance_hub,
-        plant_intelligence,
-        about_help
-    ]
-)
-
-# ==========================================
-# RUN SELECTED PAGE
-# ==========================================
-
-pg.run()
-
+# 2) Signed in -> normal multipage app
+pages = [
+    st.Page("pages/1_Dashboard.py", title="Factory Command Center", icon=":material/dashboard:", default=True),
+    st.Page("pages/2_Machine_Explorer.py", title="Machine Explorer", icon=":material/precision_manufacturing:"),
+    st.Page("pages/3_Maintenance_Reports.py", title="Maintenance & Reports", icon=":material/build:"),
+    st.Page("pages/4_About_Help.py", title="About & Help", icon=":material/help:"),
+]
+st.navigation(pages).run()
