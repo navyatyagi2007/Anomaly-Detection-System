@@ -1,3 +1,4 @@
+#### ANOMATRIX
 ### AI-Powered Industrial Anomaly Detection & Predictive Maintenance Platform
 
 ##  Project Overview
